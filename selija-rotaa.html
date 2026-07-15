@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Sēlija rotā — 18.07. dienas plāns</title>
+<style>
+  :root{
+    --bg: #14110f;
+    --bg2: #1c1815;
+    --card: #211c18;
+    --gold: #cba135;
+    --gold-soft: #e8d29a;
+    --text: #f3ece0;
+    --muted: #a89a86;
+    --line: #3a332b;
+    --accent-koris: #7fa4b0;
+    --accent-dejotaji: #c17d5a;
+    --accent-teatris: #9b7fb0;
+    --accent-ansamblis: #b0a17f;
+    --accent-folklora: #7fb08a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,var(--bg),var(--bg2) 400px);
+    color:var(--text);
+    font-family: Georgia, 'Times New Roman', serif;
+    -webkit-tap-highlight-color: transparent;
+    padding-bottom:60px;
+  }
+  header{
+    padding:22px 18px 16px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+  }
+  header .kicker{
+    letter-spacing:3px;
+    font-size:11px;
+    color:var(--gold);
+    text-transform:uppercase;
+    font-family: Arial, sans-serif;
+    margin-bottom:6px;
+  }
+  header h1{
+    margin:0;
+    font-size:26px;
+    color:var(--gold-soft);
+    font-weight:700;
+    line-height:1.25;
+  }
+  header .sub{
+    margin-top:8px;
+    font-size:14px;
+    color:var(--muted);
+    font-family: Arial, sans-serif;
+  }
+  nav.tabs{
+    display:flex;
+    gap:6px;
+    padding:14px 12px 6px;
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    z-index:20;
+    border-bottom:1px solid var(--line);
+    font-family: Arial, sans-serif;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    flex:1 0 auto;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--muted);
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:13px;
+    font-family: Arial, sans-serif;
+    letter-spacing:0.5px;
+  }
+  nav.tabs button.active{
+    border-color:var(--gold);
+    color:var(--gold-soft);
+    background:rgba(203,161,53,0.08);
+  }
+  section.view{display:none; padding:16px 14px 4px;}
+  section.view.active{display:block;}
+
+  /* Timeline */
+  .timeline{position:relative; margin-top:6px; padding-left:18px;}
+  .timeline::before{
+    content:"";
+    position:absolute; left:5px; top:4px; bottom:4px;
+    width:2px; background:var(--line);
+  }
+  .t-item{position:relative; padding:0 0 18px 14px;}
+  .t-item::before{
+    content:"";
+    position:absolute; left:-19px; top:4px;
+    width:10px; height:10px; border-radius:50%;
+    background:var(--gold); border:2px solid var(--bg);
+  }
+  .t-item.highlight::before{background:var(--gold-soft); width:13px; height:13px; left:-20.5px;}
+  .t-time{
+    font-family: Arial, sans-serif;
+    font-size:13px; color:var(--gold);
+    font-weight:700; letter-spacing:0.5px;
+  }
+  .t-place{
+    font-family: Arial, sans-serif;
+    font-size:11.5px; color:var(--muted); margin-top:2px;
+  }
+  .t-event{font-size:16px; margin-top:3px; line-height:1.35;}
+  .t-item.highlight .t-event{color:var(--gold-soft); font-weight:700;}
+  .t-note{
+    font-family: Arial, sans-serif;
+    font-size:12.5px; color:var(--muted); margin-top:4px; font-style:italic;
+  }
+  .t-contact{
+    font-family: Arial, sans-serif;
+    font-size:13px; margin-top:5px;
+  }
+  .t-contact a{color:var(--gold-soft); text-decoration:none;}
+  .order-btn{
+    display:inline-block;
+    font-family: Arial, sans-serif;
+    font-size:12.5px;
+    color:var(--bg);
+    background:var(--gold-soft);
+    border:none;
+    padding:7px 12px;
+    border-radius:16px;
+    margin-top:8px;
+    font-weight:700;
+  }
+  .order-panel{display:none; margin-top:10px; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .order-panel.open{display:block;}
+  .order-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+    font-family: Arial, sans-serif;
+    font-size:13.5px;
+  }
+  .order-row:last-child{border-bottom:none;}
+  .order-row .o-nr{
+    flex-shrink:0;
+    width:22px; height:22px;
+    border-radius:50%;
+    background:var(--gold);
+    color:#1a1611;
+    font-weight:700;
+    font-size:12px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .order-row .o-name{flex:1; color:var(--text); font-family:Georgia, serif; font-size:14.5px;}
+  .order-row .o-count{color:var(--muted); font-size:12px; flex-shrink:0;}
+  .order-row.o-lead .o-nr{background:var(--gold-soft);}
+  .order-row.o-lead .o-name{color:var(--muted); font-style:italic;}
+
+  /* Collective cards */
+  .search-wrap{padding:0 0 12px;}
+  .search-wrap input{
+    width:100%;
+    padding:11px 12px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--card);
+    color:var(--text);
+    font-family: Arial, sans-serif;
+    font-size:15px;
+  }
+  .kol-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:4px solid var(--gold);
+    border-radius:8px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .kol-head{
+    padding:13px 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .kol-head .name{font-size:16.5px; line-height:1.3;}
+  .kol-head .type{
+    font-family: Arial, sans-serif;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--muted);
+    margin-top:3px;
+  }
+  .kol-head .chev{color:var(--gold); font-size:18px; flex-shrink:0; transition:transform 0.2s;}
+  .kol-card.open .chev{transform:rotate(180deg);}
+  .kol-body{display:none; padding:0 14px 16px; border-top:1px solid var(--line);}
+  .kol-card.open .kol-body{display:block;}
+  .kol-body .timeline{margin-top:12px;}
+  .badge{
+    display:inline-block;
+    font-family: Arial, sans-serif;
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:12px;
+    margin-top:10px;
+    margin-right:6px;
+    color:var(--bg);
+    font-weight:700;
+  }
+  .badge.bus{background:var(--gold-soft);}
+  .badge.gajiens{background:#e0c56b;}
+
+  /* Contacts */
+  .contact-group{margin-bottom:20px;}
+  .contact-group h3{
+    font-family: Arial, sans-serif;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    color:var(--gold);
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+  }
+  .contact-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:11px 0;
+    border-bottom:1px solid var(--line);
+    gap:10px;
+  }
+  .contact-row .cname{font-size:15px;}
+  .contact-row .crole{
+    font-family: Arial, sans-serif;
+    font-size:12px; color:var(--muted); margin-top:2px;
+  }
+  .contact-row a{
+    font-family: Arial, sans-serif;
+    color:var(--gold-soft);
+    text-decoration:none;
+    font-size:14.5px;
+    white-space:nowrap;
+    border:1px solid var(--gold);
+    padding:6px 10px;
+    border-radius:20px;
+  }
+
+  /* Map */
+  .map-btn{
+    display:block;
+    text-align:center;
+    background:var(--gold);
+    color:#1a1611;
+    font-family: Arial, sans-serif;
+    font-weight:700;
+    text-decoration:none;
+    padding:16px;
+    border-radius:10px;
+    font-size:16px;
+    margin:10px 0 18px;
+  }
+  .bus-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:10px;
+  }
+  .bus-card .b-title{color:var(--gold-soft); font-weight:700; font-size:15px;}
+  .bus-card .b-addr{
+    font-family: Arial, sans-serif;
+    font-size:13px; color:var(--muted); margin-top:3px;
+  }
+  .bus-card .b-kol{margin-top:8px; font-size:14px; line-height:1.5;}
+  .bus-card .b-circle{
+    display:inline-block;
+    background:var(--gold);
+    color:#1a1611;
+    font-family: Arial, sans-serif;
+    font-weight:700;
+    font-size:12px;
+    padding:2px 8px;
+    border-radius:50%;
+    margin-left:6px;
+  }
+  .footnote{
+    font-family: Arial, sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    text-align:center;
+    margin-top:20px;
+    line-height:1.6;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">X Sēlijas Tautas mākslas svētki</div>
+  <h1>Sēlija rotā</h1>
+  <div class="sub">18. jūlijs · Ilūkste, Augšdaugavas novads<br>Aizkraukles novada 13 kolektīvi</div>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-view="timeline">Dienas gaita</button>
+  <button data-view="kolektivi">Kolektīvi</button>
+  <button data-view="karte">Karte / autobusi</button>
+  <button data-view="kontakti">Kontakti</button>
+</nav>
+
+<!-- TIMELINE VIEW -->
+<section class="view active" id="view-timeline">
+  <div class="timeline" id="fullTimeline"></div>
+</section>
+
+<!-- KOLEKTIVI VIEW -->
+<section class="view" id="view-kolektivi">
+  <div class="search-wrap"><input type="text" id="kolSearch" placeholder="Meklēt kolektīvu..."></div>
+  <div id="kolList"></div>
+</section>
+
+<!-- KARTE VIEW -->
+<section class="view" id="view-karte">
+  <a class="map-btn" href="https://experience.arcgis.com/experience/185fc2c66bdb48c7af812d050a1c478c/" target="_blank" rel="noopener">📍 Atvērt digitālo karti</a>
+  <div id="busList"></div>
+</section>
+
+<!-- KONTAKTI VIEW -->
+<section class="view" id="view-kontakti">
+  <div id="contactList"></div>
+</section>
+
+<div class="footnote">Aizkraukles novada Kultūras pārvalde · Sēlija rotā 2026</div>
+
+<script>
+/* ---------- DATA ---------- */
+
+const gajienaSeciba = [
+  {nr:1, name:"NOVADA ZĪME", skaits:"1 puisis", lead:true},
+  {nr:2, name:"NOVADA KAROGS", skaits:"1 puisis + 2 meitenes", lead:true},
+  {nr:3, name:"Aizkraukles novada vadība un viesu delegācijas no Ungārijas, Polijas, Ukrainas", skaits:"~18", lead:true},
+  {nr:4, name:"Daudzeses pagasta saieta nama sieviešu koris \"Daudzeva\"", skaits:10},
+  {nr:5, name:"Seces pagasta kultūras nama jauktais koris \"Vīgante\"", skaits:22},
+  {nr:6, name:"Seces pagasta kultūras nama amatierteātris \"Dūdenīši\"", skaits:14},
+  {nr:7, name:"Jaunjelgavas kultūras centra folkloras kopa \"Lauce\"", skaits:9},
+  {nr:8, name:"Staburaga pagasta saieta nama amatierteātris \"Pirmā prognoze\"", skaits:14},
+  {nr:9, name:"Jaunjelgavas kultūras centra VPDK \"Atvars\"", skaits:16},
+  {nr:10, name:"Jaunjelgavas kultūras centra VPDK \"Kodols\"", skaits:18},
+  {nr:11, name:"Jaunjelgavas kultūras centra JDK \"Kodoliņš\"", skaits:20},
+  {nr:12, name:"Mazzalves saieta nama SDK \"Sēlieši\"", skaits:12},
+  {nr:13, name:"Mazzalves saieta nama VPDK \"Savenieki\"", skaits:16},
+  {nr:14, name:"Neretas kultūras centra VPDK \"Sēļi\"", skaits:18}
+];
+
+const commonEvents = [
+  {time:"18.00", place:"Pie Raiņa vidusskolas, Raiņa iela 49", event:"Pulcēšanās gājienam", note:"Rindās pa 4 cilvēkiem, BEZ zaļumiem."},
+  {time:"18.30", place:"No Raiņa vidusskolas līdz estrādei", event:"GĀJIENS", note:"~7 minūtes. Kolektīvam jāizdomā neliela kustība, ko izpilda ejot pretī DJ skatuvītei. Neiet Kadence un Mežaroze.", highlight:true, order:gajienaSeciba},
+  {time:"19.00–21.00", place:"Ilūkstes estrādē", event:"LIELKONCERTS", highlight:true},
+  {time:"21.30", place:"Ilūkstes estrādē", event:"BALLE — grupa \"Galaktika\"", highlight:true}
+];
+
+const fullDayTimeline = [
+  {time:"9.00–10.00", place:"Ilūkstes estrādē", event:"Tehniskais mēģinājums"},
+  {time:"10.00–10.30", place:"Ilūkstes estrādē", event:"Augšdaugavas novada tautas deju kolektīvi"},
+  {time:"10.30–11.30", place:"Ilūkstes estrādē", event:"Jēkabpils novada tautas deju kolektīvi"},
+  {time:"10.30", place:"Raiņa vidusskola (sporta zālē pārģērbšanās)", event:"Kori — iedziedāšanās"},
+  {time:"11.00–13.00", place:"Raiņa vidusskola", event:"Koru mēģinājums", note:"Paņemt no mājām statīvus tērpiem!"},
+  {time:"11.00–12.00", place:"Ilūkstes Kultūras un mākslas centrs, Brīvības ielā 12", event:"IZRĀDE — \"Dūdenīši\" (Seces pag. amatierteātris)", note:"Andris Kļava, Juris Mednis \"Sesku paradīze jeb mednieku kolektīva atjaunošana\" (60 min.), rež. Astrīda Mencendorfa", contacts:[{name:"Indra Madarniece", phone:"29220324"},{name:"Astrīda Mencendorfa", phone:"26397320"}]},
+  {time:"11.30–12.00", place:"Ilūkstes estrādē", event:"Aizkraukles novada dejotāju mēģinājums", note:"Ģērbšanās Raiņa vidusskolā"},
+  {time:"12.00–12.20", place:"Ilūkstes estrādē", event:"Prologa mēģinājums (+ dejotāji)"},
+  {time:"12.20–13.00", place:"Ilūkstes estrādē", event:"Fināla mēģinājums (+ dejotāji)"},
+  {time:"12.45–13.10", place:"Kastaņu skvēra skatuve (pārģērbšanās Stadiona ielā 1)", event:"KONCERTS — \"Mežaroze\" (Sunākste) + \"Rites balsis\" (Jēkabpils nov.)", contact:{name:"Sandra Spruča", phone:"26187510"}},
+  {time:"13.00–14.00", place:"Ilūkstes estrādē", event:"Pavadošās grupas mēģinājums"},
+  {time:"13.00–14.00", place:"Ilūkstes estrādes teritorija", event:"Pusdienas — kori", note:"Taloni — Ilūkstes Raiņa vidusskolā. Kafejnīca \"Ķēķis\" — Sarmīte, 26424543"},
+  {time:"13.55–14.10", place:"Kastaņu skvēra skatuve", event:"KONCERTS — \"Kadence\" (Neretas KC)", contact:{name:"Sandra Spruča", phone:"26187510"}},
+  {time:"14.00–14.40", place:"Šēderes Kultūras nams, Skolas iela 2, Šēdere", event:"IZRĀDE — \"Pirmā prognoze\" (Staburaga pag.)", note:"Pēc R.Blaumaņa \"Brīnuma zālīte\" (40 min.), rež. Ināra Galvanauska", contacts:[{name:"Rita Butkeviča", phone:"28302714"},{name:"Ināra Galvanauska", phone:"28371797"}]},
+  {time:"14.00–16.00", place:"Ilūkstes estrādē", event:"Koru kopmēģinājums"},
+  {time:"14.00–23.00", place:"Ilūkstes estrādes teritorija", event:"Pusdienas — dejotāji, teātri, ansambļi, folklora", note:"Dejotājiem taloni — Ilūkstes Raiņa vidusskolā. Teātriem, ansambļiem un folklorai — pieraksts pie taloniem, zvanīt Dacei 29265323. Kafejnīca \"Ķēķis\" — Sarmīte, 26424543"},
+  {time:"16.00–16.30", place:"Ilūkstes estrādē", event:"Solisti / mēģinājums"},
+  {time:"16.30–17.00", place:"Ilūkstes estrādē", event:"Pasākuma vadītājs / mēģinājums"},
+  {time:"16.45–17.00", place:"Kastaņu skvēra skatuve", event:"KONCERTS — \"Lauce\" (Jaunjelgavas KC folkloras kopa)", contact:{name:"Iveta Ieviņa", phone:"26566303"}},
+  ...commonEvents
+];
+
+// Sort helper not needed — list already in chronological order as given.
+
+const busStops = [
+  {title:"Autobusu stāvvieta Nr.1", addr:"Raiņa iela 49", circle:"11", kolektivi:["Daudzeva","Vīgante","Savenieki","Sēlieši","Sēļi"]},
+  {title:"Autobusu stāvvieta Nr.3", addr:"Raiņa iela 21 — bijušais ugunsdz. depo, Jēkabpils un Raiņa ielas krustojums", circle:"13", kolektivi:["Atvars","Kodols","Kodoliņš"]},
+  {title:"Autobusu stāvvietas Nr.4, 5", addr:"Stadiona iela 1", circle:"14", kolektivi:["Mežaroze","Kadence","Lauce"]}
+];
+
+const lunchNote = {time:"", place:"Ilūkstes estrādes teritorija (taloni)", event:"13.00–14.00 kori / 14.00–23.00 dejotāji, teātri, ansambļi, folklora", note:"Kafejnīca \"Ķēķis\" — Sarmīte 26424543. Taloni koriem un dejotājiem — Raiņa vidusskolā, pārējiem zvans Dacei 29265323, sarunāsim."};
+
+const kolektivi = [
+  {
+    name:"Daudzeses pagasta saieta nama sieviešu koris \"Daudzeva\"",
+    type:"koris", gajiensNr:4, bus:"Nr.1 — Raiņa iela 49",
+    schedule:[
+      {time:"10.30", place:"Raiņa vidusskola", event:"Iedziedāšanās"},
+      {time:"11.00–13.00", place:"Raiņa vidusskola", event:"Koru mēģinājums", note:"Paņemt statīvus tērpiem!"},
+      {time:"13.00–14.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      {time:"14.00–16.00", place:"Ilūkstes estrādē", event:"Koru kopmēģinājums"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Seces pagasta kultūras nama jauktais koris \"Vīgante\"",
+    type:"koris", gajiensNr:5, bus:"Nr.1 — Raiņa iela 49",
+    schedule:[
+      {time:"10.30", place:"Raiņa vidusskola", event:"Iedziedāšanās"},
+      {time:"11.00–13.00", place:"Raiņa vidusskola", event:"Koru mēģinājums", note:"Paņemt statīvus tērpiem!"},
+      {time:"13.00–14.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      {time:"14.00–16.00", place:"Ilūkstes estrādē", event:"Koru kopmēģinājums"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Seces pagasta kultūras nama amatierteātris \"Dūdenīši\"",
+    type:"teātris", gajiensNr:6, bus:"Nav norādīts — jāprecizē",
+    schedule:[
+      {time:"11.00–12.00", place:"Ilūkstes Kultūras un mākslas centrs, Brīvības ielā 12", event:"IZRĀDE — \"Sesku paradīze jeb mednieku kolektīva atjaunošana\" (60 min.)", note:"Rež. Astrīda Mencendorfa. Stāvvieta pēc izrādes Ilūkstē — precizēšanā.", contacts:[{name:"Indra Madarniece", phone:"29220324"},{name:"Astrīda Mencendorfa", phone:"26397320"}]},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Pieraksts pie taloniem — zvanīt Dacei, 29265323"},
+      {time:"19.00–21.00", place:"Ilūkstes estrādē", event:"Lielkoncerts (skatāties)"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Jaunjelgavas kultūras centra folkloras kopa \"Lauce\"",
+    type:"folklora", gajiensNr:7, bus:"Nr.4/5 — Stadiona iela 1",
+    schedule:[
+      {time:"16.45–17.00", place:"Kastaņu skvēra skatuve", event:"KONCERTS", contact:{name:"Iveta Ieviņa", phone:"26566303"}},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Pieraksts pie taloniem — zvanīt Dacei, 29265323"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Staburaga pagasta saieta nama amatierteātris \"Pirmā prognoze\"",
+    type:"teātris", gajiensNr:8, bus:"Nav norādīts — jāprecizē",
+    schedule:[
+      {time:"14.00–14.40", place:"Šēderes Kultūras nams, Skolas iela 2, Šēdere", event:"IZRĀDE — pēc R.Blaumaņa \"Brīnuma zālīte\" (40 min.)", note:"Rež. Ināra Galvanauska. Stāvvieta pēc izrādes Ilūkstē — precizēšanā.", contacts:[{name:"Rita Butkeviča", phone:"28302714"},{name:"Ināra Galvanauska", phone:"28371797"}]},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Pieraksts pie taloniem — zvanīt Dacei, 29265323"},
+      {time:"19.00–21.00", place:"Ilūkstes estrādē", event:"Lielkoncerts (skatāties)"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Jaunjelgavas kultūras centra VPDK \"Atvars\"",
+    type:"dejotāji", gajiensNr:9, bus:"Nr.3 — Raiņa iela 21",
+    schedule:[
+      {time:"11.30–12.00", place:"Ilūkstes estrādē", event:"Dejotāju mēģinājums", note:"Ģērbšanās Raiņa vidusskolā"},
+      {time:"12.00–12.20", place:"Ilūkstes estrādē", event:"Prologa mēģinājums"},
+      {time:"12.20–13.00", place:"Ilūkstes estrādē", event:"Fināla mēģinājums"},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Jaunjelgavas kultūras centra VPDK \"Kodols\"",
+    type:"dejotāji", gajiensNr:10, bus:"Nr.3 — Raiņa iela 21",
+    schedule:[
+      {time:"11.30–12.00", place:"Ilūkstes estrādē", event:"Dejotāju mēģinājums", note:"Ģērbšanās Raiņa vidusskolā"},
+      {time:"12.00–12.20", place:"Ilūkstes estrādē", event:"Prologa mēģinājums"},
+      {time:"12.20–13.00", place:"Ilūkstes estrādē", event:"Fināla mēģinājums"},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Jaunjelgavas kultūras centra JDK \"Kodoliņš\"",
+    type:"dejotāji", gajiensNr:11, bus:"Nr.3 — Raiņa iela 21",
+    schedule:[
+      {time:"11.30–12.00", place:"Ilūkstes estrādē", event:"Dejotāju mēģinājums", note:"Ģērbšanās Raiņa vidusskolā"},
+      {time:"12.00–12.20", place:"Ilūkstes estrādē", event:"Prologa mēģinājums"},
+      {time:"12.20–13.00", place:"Ilūkstes estrādē", event:"Fināla mēģinājums"},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Mazzalves saieta nama SDK \"Sēlieši\"",
+    type:"dejotāji", gajiensNr:12, bus:"Nr.1 — Raiņa iela 49",
+    schedule:[
+      {time:"11.30–12.00", place:"Ilūkstes estrādē", event:"Dejotāju mēģinājums", note:"Ģērbšanās Raiņa vidusskolā"},
+      {time:"12.00–12.20", place:"Ilūkstes estrādē", event:"Prologa mēģinājums"},
+      {time:"12.20–13.00", place:"Ilūkstes estrādē", event:"Fināla mēģinājums"},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Mazzalves saieta nama VPDK \"Savenieki\"",
+    type:"dejotāji", gajiensNr:13, bus:"Nr.1 — Raiņa iela 49",
+    schedule:[
+      {time:"11.30–12.00", place:"Ilūkstes estrādē", event:"Dejotāju mēģinājums", note:"Ģērbšanās Raiņa vidusskolā"},
+      {time:"12.00–12.20", place:"Ilūkstes estrādē", event:"Prologa mēģinājums"},
+      {time:"12.20–13.00", place:"Ilūkstes estrādē", event:"Fināla mēģinājums"},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Neretas kultūras centra VPDK \"Sēļi\"",
+    type:"dejotāji", gajiensNr:14, bus:"Nr.1 — Raiņa iela 49",
+    schedule:[
+      {time:"11.30–12.00", place:"Ilūkstes estrādē", event:"Dejotāju mēģinājums", note:"Ģērbšanās Raiņa vidusskolā"},
+      {time:"12.00–12.20", place:"Ilūkstes estrādē", event:"Prologa mēģinājums"},
+      {time:"12.20–13.00", place:"Ilūkstes estrādē", event:"Fināla mēģinājums"},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Taloni — Ilūkstes Raiņa vidusskolā"},
+      ...commonEvents
+    ]
+  },
+  {
+    name:"Sunākstes saieta nama sieviešu vokālais ansamblis \"Mežaroze\"",
+    type:"ansamblis", gajiensNr:null, bus:"Nr.4/5 — Stadiona iela 1",
+    schedule:[
+      {time:"12.45–13.10", place:"Kastaņu skvēra skatuve", event:"KONCERTS (+ \"Rites balsis\", Jēkabpils nov.)", contact:{name:"Sandra Spruča", phone:"26187510"}},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Pieraksts pie taloniem — zvanīt Dacei, 29265323"},
+      {time:"—", place:"—", event:"Neiet gājienā", note:"Piedalās vakara programmā / ballē"},
+      {time:"19.00–21.00", place:"Ilūkstes estrādē", event:"Lielkoncerts (skatāties)"},
+      {time:"21.30", place:"Ilūkstes estrādē", event:"BALLE — grupa \"Galaktika\""}
+    ]
+  },
+  {
+    name:"Neretas KC sieviešu vokālais ansamblis \"Kadence\"",
+    type:"ansamblis", gajiensNr:null, bus:"Nr.4/5 — Stadiona iela 1",
+    schedule:[
+      {time:"13.55–14.10", place:"Kastaņu skvēra skatuve", event:"KONCERTS", contact:{name:"Sandra Spruča", phone:"26187510"}},
+      {time:"14.00–23.00", place:"Estrādes teritorija", event:"Pusdienas", note:"Pieraksts pie taloniem — zvanīt Dacei, 29265323"},
+      {time:"—", place:"—", event:"Neiet gājienā", note:"Piedalās vakara programmā / ballē"},
+      {time:"19.00–21.00", place:"Ilūkstes estrādē", event:"Lielkoncerts (skatāties)"},
+      {time:"21.30", place:"Ilūkstes estrādē", event:"BALLE — grupa \"Galaktika\""}
+    ]
+  }
+];
+
+const organizerContacts = [
+  {name:"Gunita", phone:"29341490"},
+  {name:"Inese", phone:"26316678"},
+  {name:"Inita", phone:"26359164"},
+  {name:"Diāna", phone:"25150549"},
+  {name:"Dace", phone:"29265323", role:"Aizkraukles novada Kultūras pārvalde"},
+  {name:"Una", phone:"26601060"},
+  {name:"Kristīne Smiltiņa", phone:"26120231", role:"Augšdaugavas nov. Kultūras darba metodiskā centra Amatiermākslas kolektīvu daļas vadītāja"}
+];
+
+const eventContacts = [
+  {name:"Astrīda Mencendorfa", phone:"26397320", role:"\"Dūdenīši\" izrāde (režisore)"},
+  {name:"Sandra Spruča", phone:"26187510", role:"\"Mežaroze\" un \"Kadence\" koncerti"},
+  {name:"Ināra Galvanauska", phone:"28371797", role:"\"Pirmā prognoze\" izrāde (režisore)"},
+  {name:"Iveta Ieviņa", phone:"26566303", role:"\"Lauce\" koncerts"},
+  {name:"Sarmīte", phone:"26424543", role:"Kafejnīca \"Ķēķis\" — pusdienu taloni"}
+];
+
+/* ---------- RENDER ---------- */
+
+function telLink(phone){ return phone.replace(/\s+/g,""); }
+
+let orderPanelCounter = 0;
+function renderTimelineItems(items){
+  return items.map(it => {
+    let orderHtml = "";
+    if (it.order){
+      orderPanelCounter++;
+      const pid = "orderPanel" + orderPanelCounter;
+      orderHtml = `
+        <button class="order-btn" onclick="toggleOrder('${pid}')">📋 Gājiena secība</button>
+        <div class="order-panel" id="${pid}">
+          ${it.order.map(o => `
+            <div class="order-row ${o.lead ? "o-lead" : ""}">
+              <div class="o-nr">${o.nr}</div>
+              <div class="o-name">${o.name}</div>
+              <div class="o-count">${o.skaits}</div>
+            </div>
+          `).join("")}
+        </div>`;
+    }
+    return `
+    <div class="t-item ${it.highlight ? "highlight" : ""}">
+      <div class="t-time">${it.time}</div>
+      <div class="t-place">${it.place}</div>
+      <div class="t-event">${it.event}</div>
+      ${it.note ? `<div class="t-note">${it.note}</div>` : ""}
+      ${it.contacts ? it.contacts.map(c => `<div class="t-contact">📞 ${c.name}: <a href="tel:${telLink(c.phone)}">${c.phone}</a></div>`).join("") : ""}
+      ${it.contact ? `<div class="t-contact">📞 ${it.contact.name}: <a href="tel:${telLink(it.contact.phone)}">${it.contact.phone}</a></div>` : ""}
+      ${orderHtml}
+    </div>
+  `;
+  }).join("");
+}
+
+window.toggleOrder = function(id){
+  document.getElementById(id).classList.toggle("open");
+};
+
+document.getElementById("fullTimeline").innerHTML = renderTimelineItems(fullDayTimeline);
+
+function renderKolList(filter){
+  const f = (filter||"").toLowerCase();
+  const list = kolektivi.filter(k => k.name.toLowerCase().includes(f) || k.type.includes(f));
+  document.getElementById("kolList").innerHTML = list.map((k, i) => `
+    <div class="kol-card" id="kol-${i}">
+      <div class="kol-head" onclick="toggleKol(${i})">
+        <div>
+          <div class="name">${k.name}</div>
+          <div class="type">${k.type}</div>
+        </div>
+        <div class="chev">▾</div>
+      </div>
+      <div class="kol-body">
+        ${k.gajiensNr ? `<span class="badge gajiens">Gājienā: ${k.gajiensNr}. vietā</span>` : ""}
+        <span class="badge bus">🚌 ${k.bus}</span>
+        <div class="timeline">${renderTimelineItems(k.schedule)}</div>
+      </div>
+    </div>
+  `).join("");
+}
+renderKolList("");
+
+window.toggleKol = function(i){
+  document.getElementById("kol-"+i).classList.toggle("open");
+};
+
+document.getElementById("kolSearch").addEventListener("input", e => renderKolList(e.target.value));
+
+document.getElementById("busList").innerHTML = busStops.map(b => `
+  <div class="bus-card">
+    <div class="b-title">${b.title} <span class="b-circle">${b.circle}</span></div>
+    <div class="b-addr">${b.addr}</div>
+    <div class="b-kol">${b.kolektivi.join(", ")}</div>
+  </div>
+`).join("") + `
+  <div class="bus-card">
+    <div class="b-title">Nav norādīts</div>
+    <div class="b-addr">Stāvvieta pēc izrādes Ilūkstē — precizēšanā</div>
+    <div class="b-kol">Dūdenīši, Pirmā prognoze</div>
+  </div>
+`;
+
+document.getElementById("contactList").innerHTML = `
+  <div class="contact-group">
+    <h3>Organizatori</h3>
+    ${organizerContacts.map(c => `
+      <div class="contact-row">
+        <div>
+          <div class="cname">${c.name}</div>
+          ${c.role ? `<div class="crole">${c.role}</div>` : ""}
+        </div>
+        <a href="tel:${telLink(c.phone)}">${c.phone}</a>
+      </div>
+    `).join("")}
+  </div>
+  <div class="contact-group">
+    <h3>Atbildīgie par konkrētiem priekšnesumiem</h3>
+    ${eventContacts.map(c => `
+      <div class="contact-row">
+        <div>
+          <div class="cname">${c.name}</div>
+          <div class="crole">${c.role}</div>
+        </div>
+        <a href="tel:${telLink(c.phone)}">${c.phone}</a>
+      </div>
+    `).join("")}
+  </div>
+  <div class="contact-group">
+    <h3>Pusdienas</h3>
+    <div class="contact-row">
+      <div>
+        <div class="cname">Kori, dejotāji</div>
+        <div class="crole">Taloni — Ilūkstes Raiņa vidusskolā</div>
+      </div>
+    </div>
+    <div class="contact-row">
+      <div>
+        <div class="cname">Teātri, ansambļi, folklora</div>
+        <div class="crole">Pieraksts pie taloniem — zvanīt Dacei</div>
+      </div>
+      <a href="tel:29265323">29265323</a>
+    </div>
+    <div class="contact-row">
+      <div>
+        <div class="cname">Kafejnīca "Ķēķis"</div>
+        <div class="crole">Sarmīte — pusdienu taloni: kori 13.00–14.00, pārējie 14.00–23.00</div>
+      </div>
+      <a href="tel:26424543">26424543</a>
+    </div>
+  </div>
+`;
+
+/* ---------- TABS ---------- */
+document.querySelectorAll("nav.tabs button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("nav.tabs button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("section.view").forEach(v => v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("view-" + btn.dataset.view).classList.add("active");
+    window.scrollTo(0,0);
+  });
+});
+</script>
+</body>
+</html>
