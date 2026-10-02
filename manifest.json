@@ -1,0 +1,15 @@
+{
+  "name": "Kultūras notikumi Aizkraukles novadā",
+  "short_name": "Notikumi",
+  "description": "Pasākumi un izstādes Aizkraukles novadā",
+  "start_url": "notikumi.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F3F1",
+  "theme_color": "#1F3A5F",
+  "lang": "lv",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
