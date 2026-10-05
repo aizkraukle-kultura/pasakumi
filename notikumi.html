@@ -156,9 +156,9 @@ function render(){
   $('pclr').hidden=place==='Visi';
   $('pmenu').innerHTML='';
   const all=document.createElement('button');all.textContent='Visas vietas';all.setAttribute('aria-pressed',place==='Visi');
-  all.onclick=()=>{place='Visi';day=null;render();menu(false)};$('pmenu').appendChild(all);
+  all.onclick=()=>{go({place:'Visi',day:null});menu(false)};$('pmenu').appendChild(all);
   PLACES.forEach(p=>{const b=document.createElement('button');const c=cnt[p]||0;b.innerHTML='<span></span><span class="n">'+(c||'')+'</span>';b.firstChild.textContent=p;b.disabled=!c;b.setAttribute('aria-pressed',p===place);
-    b.onclick=()=>{place=p;day=null;render();menu(false)};$('pmenu').appendChild(b)});
+    b.onclick=()=>{go({place:p,day:null});menu(false)};$('pmenu').appendChild(b)});
   $('v-afisas').setAttribute('aria-pressed',view==='afisas');$('v-saraksts').setAttribute('aria-pressed',view==='saraksts');
   // kalendārs
   const pl=byPlace(up), has=new Set(pl.map(e=>e.date));
@@ -170,14 +170,14 @@ function render(){
   $('cal').innerHTML=h+'</div>';
   $('pm').onclick=()=>{vm--;if(vm<0){vm=11;vy--}day=null;render()};
   $('nm').onclick=()=>{vm++;if(vm>11){vm=0;vy++}day=null;render()};
-  $('cal').querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>{day=day===b.dataset.d?null:b.dataset.d;render()});
+  $('cal').querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>go({day:day===b.dataset.d?null:b.dataset.d}));
   // saraksts: pasākumiem tikai izvēlētais mēnesis vai diena
   const mk=vy+'-'+String(vm+1).padStart(2,'0');
   cur=tab==='pas'?pl.filter(e=>day?e.date===day:e.date.slice(0,7)===mk):pl;
   const head=tab==='izst'?pl2(cur.length,'izstāde','izstādes'):pl2(cur.length,'pasākums','pasākumi')+', '+mn(vm+1)+' '+vy;
   $('status').innerHTML=day?'<span>Rāda: '+day.split('-').reverse().join('.')+'</span><button id="all">Rādīt visu mēnesi</button>':'<span></span>';
   if(!day)$('status').firstChild.textContent=head;
-  if($('all'))$('all').onclick=()=>{day=null;render()};
+  if($('all'))$('all').onclick=()=>go({day:null});
   const L=$('list');L.className='list'+(view==='saraksts'?' rows':' cards');
   L.innerHTML=cur.length?'':'<div class="empty" style="grid-column:1/-1">'+(tab==='izst'?'Šeit pagaidām nav izstāžu.':'Šeit pasākumu nav.')+'</div>';
   let lastG=null,wrap=null;const C=matchMedia('(min-width:700px)').matches?4:2;
@@ -205,17 +205,24 @@ function render(){
   });
 }
 try{matchMedia('(min-width:700px)').addEventListener('change',()=>render())}catch(e){}
+const st=x=>Object.assign({tab:tab,day:day,place:place},x||{});
+const base=()=>location.pathname+location.search+(tab==='izst'?'#izstades':'');
+function go(c){
+  const np=c.place!==undefined?c.place:place,nd=c.day!==undefined?c.day:day;
+  if(np===place&&nd===day)return;
+  place=np;day=nd;render();history.pushState(st(),'',base());
+}
 function setTab(t,pop){if(t===tab)return;tab=t;day=null;
   $('t-pas').setAttribute('aria-selected',t==='pas');$('t-izst').setAttribute('aria-selected',t==='izst');
   $('cal').hidden=t!=='pas';render();
-  if(!pop&&t==='izst')history.pushState({tab:'izst'},'','#izstades')}
-$('t-pas').onclick=()=>{if(tab!=='izst')return;if(history.state&&history.state.tab==='izst')history.back();else setTab('pas',true)};
+  if(!pop)history.pushState(st(),'',base())}
+$('t-pas').onclick=()=>setTab('pas');
 $('t-izst').onclick=()=>setTab('izst');
 $('v-afisas').onclick=()=>{view='afisas';render()};
 $('v-saraksts').onclick=()=>{view='saraksts';render()};
 function menu(o){$('pmenu').hidden=!o;$('pbtn').setAttribute('aria-expanded',o)}
 $('pbtn').onclick=e=>{e.stopPropagation();menu($('pmenu').hidden)};
-$('pclr').onclick=()=>{place='Visi';day=null;render()};
+$('pclr').onclick=()=>go({place:'Visi',day:null});
 document.addEventListener('click',e=>{if(!$('pmenu').contains(e.target))menu(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')menu(false)});
 
@@ -237,15 +244,24 @@ function open(i){idx=(i+cur.length)%cur.length;const e=cur[idx];
   $('mp').className='m-poster'+(e.image?' img':'');$('mp').style.background=e.image?'':color(e);$('mp').innerHTML=e.image?'<img alt="Afiša: '+e.title.replace(/"/g,'')+'" src="'+e.image+'">':'Afiša';
   $('mt').textContent=e.title;$('mw').textContent=mfmt(e);$('mv').textContent=e.place;linkify($('md'),e.desc);
   $('prev').style.visibility=$('next').style.visibility=cur.length>1?'visible':'hidden';
-  const st={modal:1,tab:tab},h=e.id?'#e='+encodeURIComponent(e.id):'#';
-  if(!$('dlg').open){$('dlg').showModal();history.pushState(st,'',h)}else history.replaceState(st,'',h);
+  const ms=st({modal:1}),h=e.id?'#e='+encodeURIComponent(e.id):'#';
+  if(!$('dlg').open){$('dlg').showModal();history.pushState(ms,'',h)}else history.replaceState(ms,'',h);
   $('dlg').scrollTop=0;}
 function closeDlg(){if(history.state&&history.state.modal)history.back();else $('dlg').close()}
 $('x').onclick=closeDlg;
 $('prev').onclick=()=>open(idx-1);$('next').onclick=()=>open(idx+1);
 $('dlg').addEventListener('click',ev=>{if(ev.target===$('dlg'))closeDlg()});
 $('dlg').addEventListener('close',()=>{if(history.state&&history.state.modal)history.back()});
-addEventListener('popstate',ev=>{if($('dlg').open)$('dlg').close();setTab((ev.state&&ev.state.tab)==='izst'?'izst':'pas',true)});
+addEventListener('popstate',ev=>{
+  if($('dlg').open)$('dlg').close();
+  const x=ev.state||{},t=x.tab==='izst'?'izst':'pas',d=x.day||null,p=x.place||'Visi';
+  if(t===tab&&d===day&&p===place)return;
+  tab=t;day=d;place=p;
+  $('t-pas').setAttribute('aria-selected',t==='pas');$('t-izst').setAttribute('aria-selected',t==='izst');
+  $('cal').hidden=t!=='pas';
+  if(d){const q=d.split('-');vy=+q[0];vm=+q[1]-1}
+  render();
+});
 let sx=0;$('dlg').addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
 $('dlg').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>60)open(idx+(dx<0?1:-1))});
 
