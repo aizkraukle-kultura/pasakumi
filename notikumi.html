@@ -93,6 +93,9 @@ dialog::backdrop{background:rgba(10,15,25,.7)}
 .m-body a{color:var(--navy);text-decoration:underline;overflow-wrap:anywhere}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:var(--onnavy);padding:10px 18px;border-radius:20px;font-size:15px;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
 #toast.on{opacity:1}
+.list.cards{display:block}
+.rw{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-items:start;border-top:2px solid var(--gold);padding-top:14px;margin-top:14px}
+@media(min-width:700px){.rw{grid-template-columns:repeat(4,1fr);gap:18px}}
 </style>
 </head>
 <body>
@@ -175,14 +178,14 @@ function render(){
   $('status').innerHTML=day?'<span>Rāda: '+day.split('-').reverse().join('.')+'</span><button id="all">Rādīt visu mēnesi</button>':'<span></span>';
   if(!day)$('status').firstChild.textContent=head;
   if($('all'))$('all').onclick=()=>{day=null;render()};
-  const L=$('list');L.className='list'+(view==='saraksts'?' rows':'');
+  const L=$('list');L.className='list'+(view==='saraksts'?' rows':' cards');
   L.innerHTML=cur.length?'':'<div class="empty" style="grid-column:1/-1">'+(tab==='izst'?'Šeit pagaidām nav izstāžu.':'Šeit pasākumu nav.')+'</div>';
-  let lastG=null;
+  let lastG=null,wrap=null;const C=matchMedia('(min-width:700px)').matches?4:2;
   cur.forEach((e,i)=>{
     let g=null;
     if(tab==='izst')g=e.date<=todayS?'Apskatāmas tagad':'Drīzumā';
     else if(view==='saraksts')g=dayHead(e.date);
-    if(g!==null&&g!==lastG){L.appendChild(el('h2','grp',g));lastG=g}
+    if(g!==null&&g!==lastG){L.appendChild(el('h2','grp',g));lastG=g;wrap=null}
     const b=document.createElement('button');
     if(view==='saraksts'){
       b.className='row';
@@ -196,9 +199,12 @@ function render(){
       b.querySelector('.when').textContent=fmt(e);b.querySelector('.where').textContent=e.place;b.querySelector('.name').textContent=e.title;
       const im=b.querySelector('.pimg');if(im)im.onerror=()=>{im.outerHTML='<div class="poster" style="background-color:'+color(e)+'">Afiša</div>'};
     }
-    b.onclick=()=>open(i);L.appendChild(b);
+    b.onclick=()=>open(i);
+    if(view==='saraksts')L.appendChild(b);
+    else{if(!wrap||wrap.children.length>=C){wrap=el('div','rw');L.appendChild(wrap)}wrap.appendChild(b)}
   });
 }
+try{matchMedia('(min-width:700px)').addEventListener('change',()=>render())}catch(e){}
 function setTab(t,pop){if(t===tab)return;tab=t;day=null;
   $('t-pas').setAttribute('aria-selected',t==='pas');$('t-izst').setAttribute('aria-selected',t==='izst');
   $('cal').hidden=t!=='pas';render();
