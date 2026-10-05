@@ -62,7 +62,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .poster{aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;color:#fff;font:700 18px Literata,Georgia,serif;text-align:center;padding:12px;background-size:cover;background-position:center}
 .txt{padding:10px 12px 12px}
 .when{font-weight:600;color:var(--navy)}
-.where{color:var(--muted);font-size:14px}
+.where{color:var(--muted);font-size:16px}
 .name{font-weight:600;margin-top:4px;line-height:1.3}
 .empty{padding:40px 0;text-align:center;color:var(--muted)}
 dialog{border:0;border-radius:12px;padding:0;width:fit-content;min-width:min(340px,94vw);max-width:min(760px,94vw);max-height:94vh;overflow:auto;background:var(--card);color:var(--ink)}
@@ -77,6 +77,22 @@ dialog::backdrop{background:rgba(10,15,25,.7)}
 .m-nav{display:flex;justify-content:space-between;padding:8px 12px 14px}
 .m-nav button{border:1px solid var(--line);background:var(--card);color:var(--navy);border-radius:8px;padding:8px 16px;font:600 15px Figtree,sans-serif;cursor:pointer}
 .close{position:absolute;top:8px;right:8px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:22px;cursor:pointer}
+
+.views{display:inline-flex;border:1px solid var(--navy);border-radius:10px;overflow:hidden;margin:2px 0 8px}
+.views button{border:0;background:var(--card);color:var(--navy);padding:0 20px;min-height:44px;font:600 15px Figtree,sans-serif;cursor:pointer}
+.views button[aria-pressed=true]{background:var(--navy);color:var(--onnavy)}
+.list.rows{display:block}
+.row{display:flex;gap:14px;width:100%;min-height:56px;align-items:flex-start;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;font:inherit;color:inherit;cursor:pointer}
+.row:hover{border-color:var(--gold)}
+.rt{flex:none;width:52px;font-weight:600;color:var(--navy)}
+.rb{display:flex;flex-direction:column;min-width:0}
+.rn{font-weight:600;line-height:1.3}
+.list.rows .grp{margin:18px 0 8px}
+.m-act{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
+.m-act button{border:1px solid var(--navy);background:var(--card);color:var(--navy);border-radius:8px;padding:10px 14px;font:600 15px Figtree,sans-serif;cursor:pointer}
+.m-body a{color:var(--navy);text-decoration:underline;overflow-wrap:anywhere}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:var(--onnavy);padding:10px 18px;border-radius:20px;font-size:15px;z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
 </style>
 </head>
 <body>
@@ -85,14 +101,16 @@ dialog::backdrop{background:rgba(10,15,25,.7)}
   <div class="tabs" role="tablist"><button role="tab" id="t-pas" aria-selected="true">Pasākumi</button><button role="tab" id="t-izst" aria-selected="false">Izstādes</button></div>
   <div class="pw"><button id="pbtn" aria-haspopup="true" aria-expanded="false"><span id="plabel">Norises vietas</span><span aria-hidden="true">▾</span></button><button id="pclr" aria-label="Rādīt visas vietas" hidden>×</button><div id="pmenu" hidden></div></div>
   <div class="cal" id="cal"></div>
+  <div class="views" role="group" aria-label="Skats"><button id="v-afisas" aria-pressed="true">Afišas</button><button id="v-saraksts" aria-pressed="false">Saraksts</button></div>
   <div class="status" id="status"></div>
   <div class="list" id="list"></div>
   <div class="install" id="inst" hidden><span id="insttxt"></span><button id="instbtn" hidden>Pievienot sākuma ekrānam</button><button id="instx" aria-label="Aizvērt">×</button></div>
 </main>
+<div id="toast" role="status"></div>
 <dialog id="dlg">
   <button class="close" id="x" aria-label="Aizvērt">×</button>
   <div class="m-poster" id="mp"></div>
-  <div class="m-body"><h2 id="mt"></h2><div class="when" id="mw"></div><div class="where" id="mv"></div><p id="md"></p></div>
+  <div class="m-body"><h2 id="mt"></h2><div class="when" id="mw"></div><div class="where" id="mv"></div><p id="md"></p><div class="m-act"><button id="addcal">Pievienot kalendāram</button><button id="share">Dalīties</button></div></div>
   <div class="m-nav"><button id="prev">Iepriekšējais</button><button id="next">Nākamais</button></div>
 </dialog>
 <script>
@@ -106,7 +124,7 @@ const DAYN=['svētdiena','pirmdiena','otrdiena','trešdiena','ceturtdiena','piek
 const PLACES=['Aizkrauklē','Aiviekstē','Bebros','Daudzesē','Iršos','Jaunjelgavā','Klintainē','Koknesē','Mazzalvē','Neretā','Pilskalnē','Pļaviņās','Secē','Sērenē','Skrīveros','Staburagā','Sunākstē','Vietalvā','Zalvē','Citviet'];
 const COLS=['#1F3A5F','#2F5D50','#7A3B3B','#4B3F72','#8A6A1F','#2B5C7A'];
 const todayS=d(0), now=new Date();
-let tab='pas', place='Visi', day=null, vm=now.getMonth(), vy=now.getFullYear(), cur=[], idx=0;
+let tab='pas', view='afisas', place='Visi', day=null, vm=now.getMonth(), vy=now.getFullYear(), cur=[], idx=0;
 const $=id=>document.getElementById(id);
 const upcoming=()=>{
   if(tab==='pas')return EVENTS.filter(e=>e.kind==='pas'&&e.date>=todayS).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
@@ -124,6 +142,10 @@ function range(e){const [y1,m1,d1]=e.date.split('-').map(Number),[y2,m2,d2]=e.en
 const fmt=e=>{if(e.kind==='izst')return range(e);const [y,m,dd]=e.date.split('-').map(Number);return dd+'. '+mn(m)+', '+e.time};
 const mfmt=e=>{if(e.kind==='izst')return range(e)+(e.time?', plkst. '+e.time:'');const [y,m,dd]=e.date.split('-').map(Number);return dd+'. '+mn(m)+', '+DAYN[new Date(y,m-1,dd).getDay()]+', plkst. '+e.time};
 function color(e){return COLS[(e.title.length+e.place.length)%COLS.length]}
+const pl2=(n,one,many)=>n+' '+((n%10===1&&n%100!==11)?one:many);
+const el=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n};
+function dayHead(ds){const [y,m,dd]=ds.split('-').map(Number);const w=DAYN[new Date(y,m-1,dd).getDay()];
+  return w[0].toUpperCase()+w.slice(1)+', '+dd+'. '+mn(m)+(ds===todayS?' (šodien)':'')}
 function render(){
   const up=upcoming();
   const cnt={};up.forEach(e=>cnt[e.place]=(cnt[e.place]||0)+1);
@@ -134,6 +156,7 @@ function render(){
   all.onclick=()=>{place='Visi';day=null;render();menu(false)};$('pmenu').appendChild(all);
   PLACES.forEach(p=>{const b=document.createElement('button');const c=cnt[p]||0;b.innerHTML='<span></span><span class="n">'+(c||'')+'</span>';b.firstChild.textContent=p;b.disabled=!c;b.setAttribute('aria-pressed',p===place);
     b.onclick=()=>{place=p;day=null;render();menu(false)};$('pmenu').appendChild(b)});
+  $('v-afisas').setAttribute('aria-pressed',view==='afisas');$('v-saraksts').setAttribute('aria-pressed',view==='saraksts');
   // kalendārs
   const pl=byPlace(up), has=new Set(pl.map(e=>e.date));
   const first=new Date(vy,vm,1), off=(first.getDay()+6)%7, n=new Date(vy,vm+1,0).getDate();
@@ -142,38 +165,108 @@ function render(){
   for(let i=1;i<=n;i++){const s=vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
     h+='<button data-d="'+s+'" class="'+(has.has(s)?'has ':'')+(s===day?'sel ':'')+(s===todayS?'today':'')+'"'+(has.has(s)?'':' disabled')+'>'+i+'</button>'}
   $('cal').innerHTML=h+'</div>';
-  $('pm').onclick=()=>{vm--;if(vm<0){vm=11;vy--}render()};
-  $('nm').onclick=()=>{vm++;if(vm>11){vm=0;vy++}render()};
+  $('pm').onclick=()=>{vm--;if(vm<0){vm=11;vy--}day=null;render()};
+  $('nm').onclick=()=>{vm++;if(vm>11){vm=0;vy++}day=null;render()};
   $('cal').querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>{day=day===b.dataset.d?null:b.dataset.d;render()});
-  // saraksts
-  cur=pl.filter(e=>!day||e.date===day);
-  $('status').innerHTML=day?'<span>Rāda: '+day.split('-').reverse().join('.')+'</span><button id="all">Rādīt visu</button>':'<span>'+cur.length+(tab==='izst'?' izstādes':' tuvākie pasākumi')+'</span>';
+  // saraksts: pasākumiem tikai izvēlētais mēnesis vai diena
+  const mk=vy+'-'+String(vm+1).padStart(2,'0');
+  cur=tab==='pas'?pl.filter(e=>day?e.date===day:e.date.slice(0,7)===mk):pl;
+  const head=tab==='izst'?pl2(cur.length,'izstāde','izstādes'):pl2(cur.length,'pasākums','pasākumi')+', '+mn(vm+1)+' '+vy;
+  $('status').innerHTML=day?'<span>Rāda: '+day.split('-').reverse().join('.')+'</span><button id="all">Rādīt visu mēnesi</button>':'<span></span>';
+  if(!day)$('status').firstChild.textContent=head;
   if($('all'))$('all').onclick=()=>{day=null;render()};
-  $('list').innerHTML=cur.length?'':'<div class="empty" style="grid-column:1/-1">Šeit pagaidām nav '+(tab==='izst'?'izstāžu':'pasākumu')+'.</div>';
+  const L=$('list');L.className='list'+(view==='saraksts'?' rows':'');
+  L.innerHTML=cur.length?'':'<div class="empty" style="grid-column:1/-1">'+(tab==='izst'?'Šeit pagaidām nav izstāžu.':'Šeit pasākumu nav.')+'</div>';
   let lastG=null;
   cur.forEach((e,i)=>{
-    if(tab==='izst'){const g=e.date<=todayS?'Apskatāmas tagad':'Drīzumā';if(g!==lastG){const h=document.createElement('h2');h.className='grp';h.textContent=g;$('list').appendChild(h);lastG=g}}
-    const b=document.createElement('button');b.className='ev';
-    b.innerHTML=(e.image?'<img class="pimg" loading="lazy" alt="" src="'+e.image+'">':'<div class="poster" style="background-color:'+color(e)+'">Afiša</div>')+'<div class="txt"><div class="when">'+fmt(e)+'</div><div class="where">'+e.place+'</div><div class="name"></div></div>';
-    const im=b.querySelector('.pimg');if(im)im.onerror=()=>{im.outerHTML='<div class="poster" style="background-color:'+color(e)+'">Afiša</div>'};b.querySelector('.name').textContent=e.title;b.onclick=()=>open(i);$('list').appendChild(b)});
+    let g=null;
+    if(tab==='izst')g=e.date<=todayS?'Apskatāmas tagad':'Drīzumā';
+    else if(view==='saraksts')g=dayHead(e.date);
+    if(g!==null&&g!==lastG){L.appendChild(el('h2','grp',g));lastG=g}
+    const b=document.createElement('button');
+    if(view==='saraksts'){
+      b.className='row';
+      const rb=el('span','rb');
+      if(tab==='pas'){b.appendChild(el('span','rt',e.time));rb.appendChild(el('span','rn',e.title));rb.appendChild(el('span','where',e.place))}
+      else{rb.appendChild(el('span','rn',e.title));rb.appendChild(el('span','where',range(e)+', '+e.place))}
+      b.appendChild(rb);
+    }else{
+      b.className='ev';
+      b.innerHTML=(e.image?'<img class="pimg" loading="lazy" alt="" src="'+e.image+'">':'<div class="poster" style="background-color:'+color(e)+'">Afiša</div>')+'<div class="txt"><div class="when"></div><div class="where"></div><div class="name"></div></div>';
+      b.querySelector('.when').textContent=fmt(e);b.querySelector('.where').textContent=e.place;b.querySelector('.name').textContent=e.title;
+      const im=b.querySelector('.pimg');if(im)im.onerror=()=>{im.outerHTML='<div class="poster" style="background-color:'+color(e)+'">Afiša</div>'};
+    }
+    b.onclick=()=>open(i);L.appendChild(b);
+  });
 }
-function setTab(t){tab=t;day=null;$('t-pas').setAttribute('aria-selected',t==='pas');$('t-izst').setAttribute('aria-selected',t==='izst');$('cal').hidden=t!=='pas';render()}
-$('t-pas').onclick=()=>setTab('pas');$('t-izst').onclick=()=>setTab('izst');
+function setTab(t,pop){if(t===tab)return;tab=t;day=null;
+  $('t-pas').setAttribute('aria-selected',t==='pas');$('t-izst').setAttribute('aria-selected',t==='izst');
+  $('cal').hidden=t!=='pas';render();
+  if(!pop&&t==='izst')history.pushState({tab:'izst'},'','#izstades')}
+$('t-pas').onclick=()=>{if(tab!=='izst')return;if(history.state&&history.state.tab==='izst')history.back();else setTab('pas',true)};
+$('t-izst').onclick=()=>setTab('izst');
+$('v-afisas').onclick=()=>{view='afisas';render()};
+$('v-saraksts').onclick=()=>{view='saraksts';render()};
 function menu(o){$('pmenu').hidden=!o;$('pbtn').setAttribute('aria-expanded',o)}
 $('pbtn').onclick=e=>{e.stopPropagation();menu($('pmenu').hidden)};
 $('pclr').onclick=()=>{place='Visi';day=null;render()};
 document.addEventListener('click',e=>{if(!$('pmenu').contains(e.target))menu(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')menu(false)});
+
+function linkify(box,text){
+  box.textContent='';const re=/(https?:\/\/[^\s<>"']+|www\.[^\s<>"']+)/g;let last=0,m;
+  while((m=re.exec(text))){
+    let u=m[0],tail='';const mm=u.match(/[.,;:!?)\]”»]+$/);if(mm){tail=mm[0];u=u.slice(0,-tail.length)}
+    box.appendChild(document.createTextNode(text.slice(last,m.index)));
+    const a=document.createElement('a');a.href=/^www\./i.test(u)?'https://'+u:u;a.target='_blank';a.rel='noopener noreferrer';a.textContent=u;box.appendChild(a);
+    if(tail)box.appendChild(document.createTextNode(tail));
+    last=m.index+m[0].length;
+  }
+  box.appendChild(document.createTextNode(text.slice(last)));
+}
+function toast(t){const n=$('toast');n.textContent=t;n.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>n.classList.remove('on'),2500)}
+const evUrl=e=>location.origin+location.pathname+'#e='+encodeURIComponent(e.id);
+
 function open(i){idx=(i+cur.length)%cur.length;const e=cur[idx];
   $('mp').className='m-poster'+(e.image?' img':'');$('mp').style.background=e.image?'':color(e);$('mp').innerHTML=e.image?'<img alt="Afiša: '+e.title.replace(/"/g,'')+'" src="'+e.image+'">':'Afiša';
-  $('mt').textContent=e.title;$('mw').textContent=mfmt(e);$('mv').textContent=e.place;$('md').textContent=e.desc;
+  $('mt').textContent=e.title;$('mw').textContent=mfmt(e);$('mv').textContent=e.place;linkify($('md'),e.desc);
   $('prev').style.visibility=$('next').style.visibility=cur.length>1?'visible':'hidden';
-  if(!$('dlg').open)$('dlg').showModal();}
-$('x').onclick=()=>$('dlg').close();
+  const st={modal:1,tab:tab},h=e.id?'#e='+encodeURIComponent(e.id):'#';
+  if(!$('dlg').open){$('dlg').showModal();history.pushState(st,'',h)}else history.replaceState(st,'',h);
+  $('dlg').scrollTop=0;}
+function closeDlg(){if(history.state&&history.state.modal)history.back();else $('dlg').close()}
+$('x').onclick=closeDlg;
 $('prev').onclick=()=>open(idx-1);$('next').onclick=()=>open(idx+1);
-$('dlg').addEventListener('click',ev=>{if(ev.target===$('dlg'))$('dlg').close()});
+$('dlg').addEventListener('click',ev=>{if(ev.target===$('dlg'))closeDlg()});
+$('dlg').addEventListener('close',()=>{if(history.state&&history.state.modal)history.back()});
+addEventListener('popstate',ev=>{if($('dlg').open)$('dlg').close();setTab((ev.state&&ev.state.tab)==='izst'?'izst':'pas',true)});
 let sx=0;$('dlg').addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
 $('dlg').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>60)open(idx+(dx<0?1:-1))});
+
+// Kopīgošana un kalendārs
+$('share').onclick=()=>{const e=cur[idx],url=evUrl(e),text=e.title+'\n'+mfmt(e)+', '+e.place;
+  if(navigator.share)navigator.share({title:e.title,text:text,url:url}).catch(()=>{});
+  else if(navigator.clipboard)navigator.clipboard.writeText(text+'\n'+url).then(()=>toast('Saite nokopēta')).catch(()=>prompt('Nokopē saiti:',url));
+  else prompt('Nokopē saiti:',url)};
+const pad=n=>String(n).padStart(2,'0');
+const ymd=s=>s.replace(/-/g,'');
+function addDays(s,n){const [y,m,dd]=s.split('-').map(Number);const t=new Date(y,m-1,dd+n);return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())}
+const icsEsc=t=>String(t).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+function makeICS(e){
+  let dt;
+  if(e.kind==='izst'||!e.time){dt='DTSTART;VALUE=DATE:'+ymd(e.date)+'\r\nDTEND;VALUE=DATE:'+ymd(addDays(e.kind==='izst'?e.end:e.date,1))}
+  else{const [h,mi]=e.time.split(':').map(Number),[y,m,dd]=e.date.split('-').map(Number);
+    const f=t=>t.getFullYear()+pad(t.getMonth()+1)+pad(t.getDate())+'T'+pad(t.getHours())+pad(t.getMinutes())+'00';
+    dt='DTSTART:'+f(new Date(y,m-1,dd,h,mi))+'\r\nDTEND:'+f(new Date(y,m-1,dd,h+2,mi))}
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Kulturas notikumi//LV','CALSCALE:GREGORIAN','BEGIN:VEVENT',
+    'UID:'+(e.id||Date.now())+'@aizkraukle-kultura.github.io','DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),
+    dt,'SUMMARY:'+icsEsc(e.title),'LOCATION:'+icsEsc(e.place+', Aizkraukles novads'),
+    'DESCRIPTION:'+icsEsc((e.desc?e.desc+'\n\n':'')+evUrl(e)),'END:VEVENT','END:VCALENDAR'].join('\r\n');
+}
+$('addcal').onclick=()=>{const e=cur[idx];
+  const url=URL.createObjectURL(new Blob([makeICS(e)],{type:'text/calendar;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='notikums.ics';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);toast('Atver failu, lai pievienotu kalendāram')};
 
 function parseCSV(t){
   const rows=[];let r=[],f='',q=false;
@@ -190,12 +283,22 @@ function load(){
   $('status').textContent='Ielādē pasākumus...';
   fetch(CSV_URL,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(r.status);return r.text()}).then(t=>{
     const rows=parseCSV(t).filter(r=>r.length>=5&&r[1]);
-    EVENTS=rows.slice(1).map(r=>({date:r[1].trim(),time:(r[2]||'').trim(),place:(r[3]||'').trim(),title:(r[4]||'').trim(),desc:(r[5]||'').trim(),
+    EVENTS=rows.slice(1).map(r=>({id:(r[0]||'').trim(),date:r[1].trim(),time:(r[2]||'').trim(),place:(r[3]||'').trim(),title:(r[4]||'').trim(),desc:(r[5]||'').trim(),
       kind:(r[7]||'').trim().toLowerCase().startsWith('izst')?'izst':'pas',end:(r[8]||'').trim()||r[1].trim(),
       image:(r[6]||'').trim()?'https://drive.google.com/thumbnail?id='+r[6].trim()+'&sz=w1200':''}));
-    render();
+    render();deepLink();
   }).catch(()=>{$('status').textContent='';$('list').innerHTML='<div class="empty" style="grid-column:1/-1">Neizdevās ielādēt pasākumus. Pamēģini vēlreiz pēc brīža.</div>'});
 }
+function deepLink(){
+  const m=h0.match(/^#e=(.+)$/);if(!m)return;
+  const id=decodeURIComponent(m[1]),e=EVENTS.find(x=>x.id===id);if(!e)return;
+  setTab(e.kind==='izst'?'izst':'pas');place='Visi';day=null;
+  if(e.kind!=='izst'){const p=e.date.split('-');vy=+p[0];vm=+p[1]-1}
+  render();const i=cur.indexOf(e);if(i>=0)open(i);
+}
+const h0=location.hash;
+history.replaceState({tab:'pas'},'',location.pathname+location.search);
+if(h0==='#izstades')setTab('izst');
 load();
 
 // Aplikācijas režīms (PWA)
