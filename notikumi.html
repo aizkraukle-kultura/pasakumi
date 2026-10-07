@@ -96,6 +96,9 @@ dialog::backdrop{background:rgba(10,15,25,.7)}
 .list.cards{display:block}
 .rw{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-items:start;border-top:2px solid var(--gold);padding-top:14px;margin-top:14px}
 @media(min-width:700px){.rw{grid-template-columns:repeat(4,1fr);gap:18px}}
+.mon{font:700 24px/1.2 Literata,Georgia,serif;color:var(--navy);margin:32px 0 0}
+.list>.mon:first-child{margin-top:12px}
+.list.rows .mon{margin:28px 0 4px}
 </style>
 </head>
 <body>
@@ -127,7 +130,7 @@ const DAYN=['svētdiena','pirmdiena','otrdiena','trešdiena','ceturtdiena','piek
 const PLACES=['Aizkrauklē','Aiviekstē','Bebros','Daudzesē','Iršos','Jaunjelgavā','Klintainē','Koknesē','Mazzalvē','Neretā','Pilskalnē','Pļaviņās','Secē','Sērenē','Skrīveros','Staburagā','Sunākstē','Vietalvā','Zalvē','Citviet'];
 const COLS=['#1F3A5F','#2F5D50','#7A3B3B','#4B3F72','#8A6A1F','#2B5C7A'];
 const todayS=d(0), now=new Date();
-let tab='pas', view='afisas', place='Visi', day=null, vm=now.getMonth(), vy=now.getFullYear(), cur=[], idx=0;
+let tab='pas', view='afisas', place='Visi', day=null, mf=null, vm=now.getMonth(), vy=now.getFullYear(), cur=[], idx=0;
 const $=id=>document.getElementById(id);
 const upcoming=()=>{
   if(tab==='pas')return EVENTS.filter(e=>e.kind==='pas'&&e.date>=todayS).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
@@ -168,20 +171,23 @@ function render(){
   for(let i=1;i<=n;i++){const s=vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(i).padStart(2,'0');
     h+='<button data-d="'+s+'" class="'+(has.has(s)?'has ':'')+(s===day?'sel ':'')+(s===todayS?'today':'')+'"'+(has.has(s)?'':' disabled')+'>'+i+'</button>'}
   $('cal').innerHTML=h+'</div>';
-  $('pm').onclick=()=>{vm--;if(vm<0){vm=11;vy--}day=null;render()};
-  $('nm').onclick=()=>{vm++;if(vm>11){vm=0;vy++}day=null;render()};
+  $('pm').onclick=()=>step(-1);
+  $('nm').onclick=()=>step(1);
   $('cal').querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>go({day:day===b.dataset.d?null:b.dataset.d}));
   // saraksts: pasākumiem tikai izvēlētais mēnesis vai diena
-  const mk=vy+'-'+String(vm+1).padStart(2,'0');
-  cur=tab==='pas'?pl.filter(e=>day?e.date===day:e.date.slice(0,7)===mk):pl;
-  const head=tab==='izst'?pl2(cur.length,'izstāde','izstādes'):pl2(cur.length,'pasākums','pasākumi')+', '+mn(vm+1)+' '+vy;
-  $('status').innerHTML=day?'<span>Rāda: '+day.split('-').reverse().join('.')+'</span><button id="all">Rādīt visu mēnesi</button>':'<span></span>';
-  if(!day)$('status').firstChild.textContent=head;
-  if($('all'))$('all').onclick=()=>go({day:null});
+  cur=tab==='pas'?pl.filter(e=>day?e.date===day:(!mf||e.date.slice(0,7)===mf)):pl;
+  const sh=$('status');sh.innerHTML='';
+  const lab=el('span');sh.appendChild(lab);
+  if(tab==='izst')lab.textContent=pl2(cur.length,'izstāde','izstādes');
+  else if(day){lab.textContent='Rāda: '+day.split('-').reverse().join('.');const b=el('button',null,mf?'Rādīt visu mēnesi':'Rādīt visus tuvākos');b.onclick=()=>go({day:null});sh.appendChild(b)}
+  else if(mf){lab.textContent=MON[+mf.slice(5)-1]+' '+mf.slice(0,4)+', '+pl2(cur.length,'pasākums','pasākumi');const b=el('button',null,'Rādīt visus tuvākos');b.onclick=()=>go({mf:null});sh.appendChild(b)}
+  else lab.textContent=pl2(cur.length,'pasākums','pasākumi');
   const L=$('list');L.className='list'+(view==='saraksts'?' rows':' cards');
   L.innerHTML=cur.length?'':'<div class="empty" style="grid-column:1/-1">'+(tab==='izst'?'Šeit pagaidām nav izstāžu.':'Šeit pasākumu nav.')+'</div>';
-  let lastG=null,wrap=null;const C=matchMedia('(min-width:700px)').matches?4:2;
+  let lastG=null,lastM=null,wrap=null;const multi=tab==='pas'&&!day&&!mf&&new Set(cur.map(e=>e.date.slice(0,7))).size>1;const C=matchMedia('(min-width:700px)').matches?4:2;
   cur.forEach((e,i)=>{
+    const mkey=e.date.slice(0,7);
+    if(multi&&mkey!==lastM){L.appendChild(el('h2','mon',MON[+mkey.slice(5)-1]+' '+mkey.slice(0,4)));lastM=mkey;wrap=null;lastG=null}
     let g=null;
     if(tab==='izst')g=e.date<=todayS?'Apskatāmas tagad':'Drīzumā';
     else if(view==='saraksts')g=dayHead(e.date);
@@ -205,12 +211,18 @@ function render(){
   });
 }
 try{matchMedia('(min-width:700px)').addEventListener('change',()=>render())}catch(e){}
-const st=x=>Object.assign({tab:tab,day:day,place:place},x||{});
+const st=x=>Object.assign({tab:tab,day:day,place:place,mf:mf,vm:vm,vy:vy},x||{});
 const base=()=>location.pathname+location.search+(tab==='izst'?'#izstades':'');
 function go(c){
-  const np=c.place!==undefined?c.place:place,nd=c.day!==undefined?c.day:day;
-  if(np===place&&nd===day)return;
-  place=np;day=nd;render();history.pushState(st(),'',base());
+  const np=c.place!==undefined?c.place:place,nd=c.day!==undefined?c.day:day,nm=c.mf!==undefined?c.mf:mf;
+  if(np===place&&nd===day&&nm===mf)return;
+  place=np;day=nd;mf=nm;render();history.pushState(st(),'',base());
+}
+function step(dir){
+  vm+=dir;if(vm<0){vm=11;vy--}if(vm>11){vm=0;vy++}
+  const key=vy+'-'+String(vm+1).padStart(2,'0');
+  if(mf===null)go({mf:key,day:null});
+  else{mf=key;day=null;render();history.replaceState(st(),'',base())}
 }
 function setTab(t,pop){if(t===tab)return;tab=t;day=null;
   $('t-pas').setAttribute('aria-selected',t==='pas');$('t-izst').setAttribute('aria-selected',t==='izst');
@@ -254,12 +266,12 @@ $('dlg').addEventListener('click',ev=>{if(ev.target===$('dlg'))closeDlg()});
 $('dlg').addEventListener('close',()=>{if(history.state&&history.state.modal)history.back()});
 addEventListener('popstate',ev=>{
   if($('dlg').open)$('dlg').close();
-  const x=ev.state||{},t=x.tab==='izst'?'izst':'pas',d=x.day||null,p=x.place||'Visi';
-  if(t===tab&&d===day&&p===place)return;
-  tab=t;day=d;place=p;
+  const x=ev.state||{},t=x.tab==='izst'?'izst':'pas',d=x.day||null,p=x.place||'Visi',m=x.mf||null;
+  if(t===tab&&d===day&&p===place&&m===mf)return;
+  tab=t;day=d;place=p;mf=m;
   $('t-pas').setAttribute('aria-selected',t==='pas');$('t-izst').setAttribute('aria-selected',t==='izst');
   $('cal').hidden=t!=='pas';
-  if(d){const q=d.split('-');vy=+q[0];vm=+q[1]-1}
+  if(x.vm!==undefined){vm=x.vm;vy=x.vy}else if(d){const q=d.split('-');vy=+q[0];vm=+q[1]-1}
   render();
 });
 let sx=0;$('dlg').addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
@@ -314,12 +326,12 @@ function load(){
 function deepLink(){
   const m=h0.match(/^#e=(.+)$/);if(!m)return;
   const id=decodeURIComponent(m[1]),e=EVENTS.find(x=>x.id===id);if(!e)return;
-  setTab(e.kind==='izst'?'izst':'pas');place='Visi';day=null;
+  setTab(e.kind==='izst'?'izst':'pas');place='Visi';day=null;mf=null;
   if(e.kind!=='izst'){const p=e.date.split('-');vy=+p[0];vm=+p[1]-1}
   render();const i=cur.indexOf(e);if(i>=0)open(i);
 }
 const h0=location.hash;
-history.replaceState({tab:'pas'},'',location.pathname+location.search);
+history.replaceState(st(),'',location.pathname+location.search);
 if(h0==='#izstades')setTab('izst');
 load();
 
